@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from typing import List
 
 from core.database import obtener_bd
@@ -12,7 +13,9 @@ router = APIRouter(prefix="/ordenes", tags=["Órdenes"])
 
 @router.get("/", response_model=List[OrdenResponse])
 async def obtener_ordenes(db: AsyncSession = Depends(obtener_bd)):
-    resultado = await db.execute(select(OrdenModel))
+    resultado = await db.execute(
+        select(OrdenModel).options(selectinload(OrdenModel.mecanico))
+    )
     ordenes = resultado.scalars().all()
     return {"total": len(ordenes), "ordenes": ordenes}
 
