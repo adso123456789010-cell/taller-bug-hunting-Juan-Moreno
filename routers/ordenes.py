@@ -69,6 +69,6 @@ async def eliminar_orden(orden_id: int, db: AsyncSession = Depends(obtener_bd)):
     if not orden_db:
         raise HTTPException(status_code=404, detail="Orden no encontrada")
 
-    db.delete(orden_db)
+    await db.delete(orden_db)
     await db.commit()
     return None
