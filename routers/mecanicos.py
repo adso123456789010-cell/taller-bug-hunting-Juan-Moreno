@@ -32,4 +32,5 @@ async def desactivar_mecanico(mecanico_id: int, db: AsyncSession = Depends(obten
         raise HTTPException(status_code=404, detail="Mecánico no encontrado")
 
     mecanico.activo = False
+    await db.commit()
     return None
