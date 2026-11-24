@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional
 
 class MecanicoCreate(BaseModel):
     nombre_completo: str
@@ -8,7 +8,6 @@ class MecanicoCreate(BaseModel):
 class MecanicoResponse(MecanicoCreate):
     id: int
     activo: bool
-    ordenes: List["OrdenResponse"] = []
 
     model_config = {"from_attributes": True}
 
