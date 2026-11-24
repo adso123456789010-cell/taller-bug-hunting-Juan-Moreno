@@ -55,8 +55,12 @@ async def actualizar_orden(orden_id: int, orden_patch: OrdenPatch, db: AsyncSess
         setattr(orden_db, campo, valor)
 
     await db.commit()
-    await db.refresh(orden_db)
-    return orden_db
+    resultado = await db.execute(
+        select(OrdenModel)
+        .options(selectinload(OrdenModel.mecanico))
+        .where(OrdenModel.id == orden_id)
+    )
+    return resultado.scalar_one()
 
 @router.delete("/{orden_id}", status_code=204)
 async def eliminar_orden(orden_id: int, db: AsyncSession = Depends(obtener_bd)):
