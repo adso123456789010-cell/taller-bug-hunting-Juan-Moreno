@@ -17,15 +17,31 @@ async def obtener_ordenes(db: AsyncSession = Depends(obtener_bd)):
         select(OrdenModel).options(selectinload(OrdenModel.mecanico))
     )
     ordenes = resultado.scalars().all()
-    return {"total": len(ordenes), "ordenes": ordenes}
+    return ordenes
 
 @router.post("/", status_code=201, response_model=OrdenResponse)
 async def crear_orden(orden: OrdenCreate, db: AsyncSession = Depends(obtener_bd)):
+    resultado = await db.execute(
+        select(MecanicoModel).where(
+            MecanicoModel.id == orden.mecanico_id,
+            MecanicoModel.activo.is_(True),
+        )
+    )
+    if resultado.scalar_one_or_none() is None:
+        raise HTTPException(
+            status_code=400,
+            detail="El mecánico no existe o está desactivado",
+        )
+
     nueva_orden = OrdenModel(**orden.model_dump())
     db.add(nueva_orden)
     await db.commit()
-    await db.refresh(nueva_orden)
-    return nueva_orden
+    resultado = await db.execute(
+        select(OrdenModel)
+        .options(selectinload(OrdenModel.mecanico))
+        .where(OrdenModel.id == nueva_orden.id)
+    )
+    return resultado.scalar_one()
 
 @router.patch("/{orden_id}", response_model=OrdenResponse)
 async def actualizar_orden(orden_id: int, orden_patch: OrdenPatch, db: AsyncSession = Depends(obtener_bd)):
